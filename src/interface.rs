@@ -20,7 +20,6 @@
 
 use discrete_range_map::Interval;
 
-/// A GapQueryIntervalTree as described in my paper
 pub trait GapQueryIntervalTree<I, T>
 where
 	T: Copy + Clone,
