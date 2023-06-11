@@ -70,6 +70,7 @@ where
 		});
 
 		for (extended_interval, extended_identifiers) in extended_cut {
+            dbg!("inserting");
 			self.inner
 				.insert_merge_touching_if_values_equal(
 					extended_interval,
