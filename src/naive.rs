@@ -5,8 +5,19 @@ use discrete_range_map::{DiscreteFinite, DiscreteRangeSet, Interval};
 
 use crate::interface::GapQueryIntervalTree;
 
+#[derive(Debug, Clone)]
 pub struct NaiveGapQueryIntervalTree<I, T> {
-	pub inner: HashMap<I, DiscreteRangeSet<T, Interval<T>>>,
+	pub(crate) inner: HashMap<I, DiscreteRangeSet<T, Interval<T>>>,
+}
+
+impl<I, T> PartialEq for NaiveGapQueryIntervalTree<I, T>
+where
+	I: Eq + Hash,
+	T: PartialEq,
+{
+	fn eq(&self, other: &Self) -> bool {
+		self.inner == other.inner
+	}
 }
 
 impl<I, T> GapQueryIntervalTree<I, T> for NaiveGapQueryIntervalTree<I, T>
@@ -37,12 +48,20 @@ where
 	}
 }
 
+impl<I, T> NaiveGapQueryIntervalTree<I, T> {
+	pub fn new() -> Self {
+		Self {
+			inner: HashMap::new(),
+		}
+	}
+}
+
 impl<I, T> NaiveGapQueryIntervalTree<I, T>
 where
 	I: Eq + Hash,
 	T: Ord + Copy + DiscreteFinite,
 {
-	pub fn get_gaps(
+	fn get_gaps(
 		&self,
 		with_identifier: Option<I>,
 	) -> DiscreteRangeSet<T, Interval<T>> {

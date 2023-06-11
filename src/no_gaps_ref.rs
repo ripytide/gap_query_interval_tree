@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 use std::hash::Hash;
 
-use derive_new::new;
 use discrete_range_map::{DiscreteFinite, DiscreteRangeMap, Interval};
 use itertools::Itertools;
 
 use crate::interface::GapQueryIntervalTree;
+use crate::naive::NaiveGapQueryIntervalTree;
 
-#[derive(Clone, Debug, Default, new)]
+#[derive(Clone, Debug)]
 pub struct NoGapsRefGapQueryIntervalTree<I, T> {
 	inner: DiscreteRangeMap<T, Interval<T>, HashSet<I>>,
 }
@@ -214,6 +214,29 @@ where
 				Ok(y.merge_ordered(&x))
 			})
 			.next()
+	}
+
+	pub(crate) fn into_naive(self) -> NaiveGapQueryIntervalTree<I, T> {
+		let mut naive = NaiveGapQueryIntervalTree::new();
+
+		for (interval, identifiers) in self.inner {
+			for identifier in identifiers {
+				naive
+					.inner
+					.entry(identifier)
+					.or_default()
+					.insert_merge_touching(interval)
+					.unwrap();
+			}
+		}
+
+		return naive;
+	}
+
+	pub fn new() -> Self {
+		Self {
+			inner: DiscreteRangeMap::new(),
+		}
 	}
 }
 
