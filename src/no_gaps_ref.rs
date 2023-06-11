@@ -70,7 +70,6 @@ where
 		});
 
 		for (extended_interval, extended_identifiers) in extended_cut {
-            dbg!("inserting");
 			self.inner
 				.insert_merge_touching_if_values_equal(
 					extended_interval,
@@ -235,9 +234,16 @@ where
 	}
 
 	pub fn new() -> Self {
-		Self {
-			inner: DiscreteRangeMap::new(),
-		}
+		let mut map = DiscreteRangeMap::new();
+		map.insert_strict(
+			Interval {
+				start: T::MIN,
+				end: T::MAX,
+			},
+			HashSet::new(),
+		)
+		.unwrap();
+		Self { inner: map }
 	}
 }
 
