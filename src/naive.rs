@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use discrete_range_map::{DiscreteFinite, DiscreteRangeSet};
+use discrete_range_map::{DiscreteFinite, DiscreteRangeSet, Interval};
 
-use crate::interface::{GapQueryIntervalTree, Interval};
+use crate::interface::GapQueryIntervalTree;
 
 pub struct NaiveGapQueryIntervalTree<I, T> {
 	pub inner: HashMap<I, DiscreteRangeSet<T, Interval<T>>>,
@@ -12,7 +12,7 @@ pub struct NaiveGapQueryIntervalTree<I, T> {
 impl<I, T> GapQueryIntervalTree<I, T> for NaiveGapQueryIntervalTree<I, T>
 where
 	I: Eq + Hash,
-	T: Ord + Copy + Clone + DiscreteFinite,
+	T: Ord + Copy + DiscreteFinite,
 {
 	fn gap_query(
 		&self,
@@ -40,7 +40,7 @@ where
 impl<I, T> NaiveGapQueryIntervalTree<I, T>
 where
 	I: Eq + Hash,
-	T: Ord + Copy + Clone + DiscreteFinite,
+	T: Ord + Copy + DiscreteFinite,
 {
 	pub fn get_gaps(
 		&self,

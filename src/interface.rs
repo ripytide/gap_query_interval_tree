@@ -1,6 +1,4 @@
-use discrete_range_map::DiscreteFiniteBounds;
-
-pub type Interval<T> = DiscreteFiniteBounds<T>;
+use discrete_range_map::Interval;
 
 pub trait GapQueryIntervalTree<I, T>
 where
