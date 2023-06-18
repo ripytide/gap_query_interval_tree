@@ -84,11 +84,17 @@ where
     }
 }
 
-impl<I, K, D> NaiveGapQueryIntervalTree<I, K, D> {
-    pub fn new() -> Self {
+impl<I, K, D> Default for NaiveGapQueryIntervalTree<I, K, D> {
+    fn default() -> Self {
         Self {
             inner: HashMap::new(),
         }
+    }
+}
+
+impl<I, K, D> NaiveGapQueryIntervalTree<I, K, D> {
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 

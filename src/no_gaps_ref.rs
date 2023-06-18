@@ -291,3 +291,13 @@ where
         Self { inner: map }
     }
 }
+
+impl<I, K, D> NoGapsRefGapQueryIntervalTree<I, K, D>
+where
+    I: DiscreteFinite + Copy + Ord,
+    K: InclusiveRange<I> + From<InclusiveInterval<I>> + Copy,
+{
+    pub fn new() -> Self {
+        Self::default()
+    }
+}

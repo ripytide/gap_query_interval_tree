@@ -30,18 +30,19 @@ pub trait GapQueryIntervalTree<I, K, D> {
     #[doc=include_str!("../images/gap-query.svg")]
     ///
     /// ```
-    /// use discrete_range_map::Interval;
+    /// use std::collections::HashSet;
+    /// use discrete_range_map::InclusiveInterval;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
     ///
     /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
-    /// tree.insert(5, Interval { start: 3, end: 6 });
-    /// tree.insert(9, Interval { start: 12, end: 28 });
+    /// tree.insert(HashSet::from([5]), InclusiveInterval { start: 3, end: 6 });
+    /// tree.insert(HashSet::from([9]), InclusiveInterval { start: 12, end: 28 });
     ///
     /// assert_eq!(
-    /// 	tree.gap_query(None, Interval { start: 9, end: 9 }),
-    /// 	Vec::from([Interval { start: 7, end: 11 }])
+    /// 	tree.gap_query(None, InclusiveInterval { start: 9, end: 9 }),
+    /// 	Vec::from([InclusiveInterval { start: 7, end: 11 }])
     /// );
     /// ```
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
@@ -53,14 +54,15 @@ pub trait GapQueryIntervalTree<I, K, D> {
     #[doc=include_str!("../images/insertion.svg")]
     ///
     /// ```
-    /// use discrete_range_map::Interval;
+    /// use std::collections::HashSet;
+    /// use discrete_range_map::InclusiveInterval;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
     ///
     /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
-    /// tree.insert(HashSet::from([5]), Interval { start: 3, end: 6 });
-    /// tree.insert(HashSet::from([9]), Interval { start: 12, end: 28 });
+    /// tree.insert(HashSet::from([5]), InclusiveInterval { start: 3, end: 6 });
+    /// tree.insert(HashSet::from([9]), InclusiveInterval { start: 12, end: 28 });
     /// ```
     fn insert(&mut self, identifiers: HashSet<D>, interval: K);
 
@@ -69,17 +71,18 @@ pub trait GapQueryIntervalTree<I, K, D> {
     #[doc=include_str!("../images/removal.svg")]
     ///
     /// ```
-    /// use discrete_range_map::Interval;
+    /// use std::collections::HashSet;
+    /// use discrete_range_map::InclusiveInterval;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
     ///
     /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
-    /// tree.insert(5, Interval { start: 3, end: 6 });
-    /// tree.insert(9, Interval { start: 12, end: 28 });
+    /// tree.insert(HashSet::from([5]), InclusiveInterval { start: 3, end: 6 });
+    /// tree.insert(HashSet::from([9]), InclusiveInterval { start: 12, end: 28 });
     ///
-    /// tree.remove(5, Interval { start: 4, end: 5 });
-    /// tree.remove(9, Interval { start: 0, end: 30 });
+    /// tree.cut(HashSet::from([5]), InclusiveInterval { start: 4, end: 5 });
+    /// tree.cut(HashSet::from([9]), InclusiveInterval { start: 0, end: 30 });
     /// ```
     fn cut(&mut self, identifiers: HashSet<D>, interval: K);
 
@@ -87,7 +90,8 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// another.
     ///
     /// ```
-    /// use discrete_range_map::Interval;
+    /// use std::collections::HashSet;
+    /// use discrete_range_map::InclusiveInterval;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
@@ -95,14 +99,14 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// let mut tree1 = NoGapsRefGapQueryIntervalTree::new();
     /// let mut tree2 = NoGapsRefGapQueryIntervalTree::new();
     ///
-    /// tree1.insert(5, Interval { start: 3, end: 6 });
-    /// tree2.insert(9, Interval { start: 12, end: 28 });
+    /// tree1.insert(HashSet::from([5]), InclusiveInterval { start: 3, end: 6 });
+    /// tree2.insert(HashSet::from([9]), InclusiveInterval { start: 12, end: 28 });
     ///
     /// tree1.append(&mut tree2);
     ///
     /// assert_eq!(
     /// 	tree1.gap_at_point(None, 9),
-    /// 	Some(Interval { start: 7, end: 11 })
+    /// 	Some(InclusiveInterval { start: 7, end: 11 })
     /// );
     /// ```
     fn append(&mut self, other: &mut Self);
@@ -114,23 +118,24 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// interval.
     ///
     /// ```
-    /// use discrete_range_map::Interval;
+    /// use std::collections::HashSet;
+    /// use discrete_range_map::InclusiveInterval;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
     ///
     /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
-    /// tree.insert(5, Interval { start: 3, end: 6 });
-    /// tree.insert(9, Interval { start: 12, end: 28 });
+    /// tree.insert(HashSet::from([5]), InclusiveInterval { start: 3, end: 6 });
+    /// tree.insert(HashSet::from([9]), InclusiveInterval { start: 12, end: 28 });
     ///
     /// assert_eq!(
     /// 	tree.gap_at_point(None, 9),
-    /// 	Some(Interval { start: 7, end: 11 })
+    /// 	Some(InclusiveInterval { start: 7, end: 11 })
     /// );
     ///
     /// assert_eq!(
     /// 	tree.gap_at_point(None, 9),
-    /// 	tree.gap_query(None, Interval { start: 9, end: 9 }).pop()
+    /// 	tree.gap_query(None, InclusiveInterval { start: 9, end: 9 }).pop()
     /// );
     /// ```
     fn gap_at_point(&self, with_identifier: Option<D>, at_point: I) -> Option<K>
