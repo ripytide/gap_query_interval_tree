@@ -94,6 +94,23 @@ where
             }
         }
     }
+
+    fn identifiers_at_point(&self, at_point: I) -> HashSet<D>
+    where
+        D: Copy,
+    {
+        self.inner
+            .iter()
+            .filter_map(|(identifier, intervals)| {
+                if intervals.contains_point(at_point) {
+                    Some(identifier)
+                } else {
+                    None
+                }
+            })
+            .copied()
+            .collect()
+    }
 }
 
 impl<I, K, D> Default for NaiveGapQueryIntervalTree<I, K, D> {

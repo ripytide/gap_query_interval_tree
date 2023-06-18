@@ -111,6 +111,16 @@ where
             self.insert(identifiers, interval);
         }
     }
+
+    fn identifiers_at_point(&self, at_point: I) -> HashSet<D>
+    where
+        D: Copy,
+    {
+        self.inner
+            .get_at_point(at_point)
+            .cloned()
+            .unwrap_or(HashSet::new())
+    }
 }
 
 impl<I, K, D> NoGapsRefGapQueryIntervalTree<I, K, D>

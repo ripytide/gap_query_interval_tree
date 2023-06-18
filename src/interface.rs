@@ -67,7 +67,7 @@ pub trait GapQueryIntervalTree<I, K, D> {
     fn insert(&mut self, identifiers: HashSet<D>, interval: K);
 
     /// Cuts an interval from the collection for the given
-    /// identifiers, if no identifiers are given all identifies are
+    /// identifiers, if no identifiers are given all identifiers are
     /// cut.
     #[doc=include_str!("../images/removal.svg")]
     ///
@@ -89,8 +89,8 @@ pub trait GapQueryIntervalTree<I, K, D> {
     where
         Q: InclusiveRange<I> + Copy;
 
-    /// A convenience method for appending one interval tree with
-    /// another.
+    /// Append one interval tree with another by inserting all the
+    /// intervals from `other` into `self`.
     ///
     /// ```
     /// use std::collections::HashSet;
@@ -157,4 +157,32 @@ pub trait GapQueryIntervalTree<I, K, D> {
 
         overlapping.pop()
     }
+
+    /// Get all identifiers which have an interval overlapping the
+    /// given point.
+    ///
+    /// ```
+    /// use std::collections::HashSet;
+    /// use discrete_range_map::InclusiveInterval;
+    /// use gap_query_interval_tree::{
+    /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
+    /// };
+    ///
+    /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
+    /// tree.insert(HashSet::from([5]), InclusiveInterval { start: 3, end: 6 });
+    /// tree.insert(HashSet::from([9]), InclusiveInterval { start: 12, end: 28 });
+    ///
+    /// assert_eq!(
+    /// 	tree.identifiers_at_point(9),
+    /// 	HashSet::from([])
+    /// );
+    ///
+    /// assert_eq!(
+    /// 	tree.identifiers_at_point(16),
+    /// 	HashSet::from([9])
+    /// );
+    /// ```
+    fn identifiers_at_point(&self, at_point: I) -> HashSet<D>
+    where
+        D: Copy;
 }

@@ -86,4 +86,16 @@ where
 
         self.assert_eq();
     }
+
+    fn identifiers_at_point(&self, at_point: I) -> HashSet<D>
+    where
+        D: Copy,
+    {
+        let result1 = self.naive.identifiers_at_point(at_point);
+        let result2 = self.no_gaps_ref.identifiers_at_point(at_point);
+
+        assert_eq!(result1, result2);
+
+        return result1;
+    }
 }
