@@ -52,14 +52,22 @@ where
         }
     }
 
-    fn cut(&mut self, identifiers: HashSet<D>, interval: K) {
+    fn cut<Q>(&mut self, with_identifiers: Option<HashSet<D>>, interval: Q)
+    where
+        Q: InclusiveRange<I> + Copy,
+    {
         for (cut_interval, mut cut_identifiers) in self
             .inner
             .cut(interval)
             //to soothe the borrow checker
             .collect::<Vec<_>>()
         {
-            cut_identifiers.retain(|i| !identifiers.contains(i));
+            match with_identifiers.as_ref() {
+                Some(identifiers) => {
+                    cut_identifiers.retain(|i| !identifiers.contains(i));
+                }
+                None => cut_identifiers.clear(),
+            }
             self.inner
                 .insert_merge_touching_if_values_equal(cut_interval, cut_identifiers)
                 .unwrap();

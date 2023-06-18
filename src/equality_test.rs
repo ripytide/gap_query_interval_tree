@@ -77,9 +77,12 @@ where
         self.assert_eq();
     }
 
-    fn cut(&mut self, identifiers: HashSet<D>, interval: K) {
-        self.naive.cut(identifiers.clone(), interval);
-        self.no_gaps_ref.cut(identifiers, interval);
+    fn cut<Q>(&mut self, with_identifiers: Option<HashSet<D>>, interval: Q)
+    where
+        Q: InclusiveRange<I> + Copy,
+    {
+        self.naive.cut(with_identifiers.clone(), interval);
+        self.no_gaps_ref.cut(with_identifiers, interval);
 
         self.assert_eq();
     }

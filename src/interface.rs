@@ -67,7 +67,8 @@ pub trait GapQueryIntervalTree<I, K, D> {
     fn insert(&mut self, identifiers: HashSet<D>, interval: K);
 
     /// Cuts an interval from the collection for the given
-    /// identifiers.
+    /// identifiers, if no identifiers are given all identifies are
+    /// cut.
     #[doc=include_str!("../images/removal.svg")]
     ///
     /// ```
@@ -84,7 +85,9 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// tree.cut(HashSet::from([5]), InclusiveInterval { start: 4, end: 5 });
     /// tree.cut(HashSet::from([9]), InclusiveInterval { start: 0, end: 30 });
     /// ```
-    fn cut(&mut self, identifiers: HashSet<D>, interval: K);
+    fn cut<Q>(&mut self, with_identifiers: Option<HashSet<D>>, interval: Q)
+    where
+        Q: InclusiveRange<I> + Copy;
 
     /// A convenience method for appending one interval tree with
     /// another.

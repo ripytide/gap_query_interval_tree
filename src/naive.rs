@@ -64,10 +64,22 @@ where
                 .insert_merge_touching_or_overlapping(interval);
         }
     }
-    fn cut(&mut self, identifiers: HashSet<D>, interval: K) {
-        for identifier in identifiers {
-            if let Some(set) = self.inner.get_mut(&identifier) {
-                let _ = set.cut(interval);
+    fn cut<Q>(&mut self, with_identifiers: Option<HashSet<D>>, interval: Q)
+    where
+        Q: InclusiveRange<I> + Copy,
+    {
+        match with_identifiers {
+            Some(identifiers) => {
+                for identifier in identifiers {
+                    if let Some(set) = self.inner.get_mut(&identifier) {
+                        let _ = set.cut(interval);
+                    }
+                }
+            }
+            None => {
+                for set in self.inner.values_mut() {
+                    let _ = set.cut(interval);
+                }
             }
         }
     }
