@@ -82,8 +82,8 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// tree.insert(HashSet::from([5]), InclusiveInterval { start: 3, end: 6 });
     /// tree.insert(HashSet::from([9]), InclusiveInterval { start: 12, end: 28 });
     ///
-    /// tree.cut(HashSet::from([5]), InclusiveInterval { start: 4, end: 5 });
-    /// tree.cut(HashSet::from([9]), InclusiveInterval { start: 0, end: 30 });
+    /// tree.cut(Some(HashSet::from([5])), InclusiveInterval { start: 4, end: 5 });
+    /// tree.cut(Some(HashSet::from([9])), InclusiveInterval { start: 0, end: 30 });
     /// ```
     fn cut<Q>(&mut self, with_identifiers: Option<HashSet<D>>, interval: Q)
     where
@@ -108,7 +108,7 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// tree1.append(&mut tree2);
     ///
     /// assert_eq!(
-    /// 	tree1.gap_at_point(None, 9),
+    /// 	tree1.gap_query_at_point(None, 9),
     /// 	Some(InclusiveInterval { start: 7, end: 11 })
     /// );
     /// ```
@@ -132,16 +132,16 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// tree.insert(HashSet::from([9]), InclusiveInterval { start: 12, end: 28 });
     ///
     /// assert_eq!(
-    /// 	tree.gap_at_point(None, 9),
+    /// 	tree.gap_query_at_point(None, 9),
     /// 	Some(InclusiveInterval { start: 7, end: 11 })
     /// );
     ///
     /// assert_eq!(
-    /// 	tree.gap_at_point(None, 9),
+    /// 	tree.gap_query_at_point(None, 9),
     /// 	tree.gap_query(None, InclusiveInterval { start: 9, end: 9 }).pop()
     /// );
     /// ```
-    fn gap_at_point(&self, with_identifier: Option<D>, at_point: I) -> Option<K>
+    fn gap_query_at_point(&self, with_identifier: Option<D>, at_point: I) -> Option<K>
     where
         I: Copy,
     {

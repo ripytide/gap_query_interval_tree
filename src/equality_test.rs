@@ -21,7 +21,6 @@
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
-use std::ops::RangeBounds;
 
 use discrete_range_map::{DiscreteFinite, InclusiveInterval, InclusiveRange};
 
@@ -38,13 +37,7 @@ pub struct EqualityTestGapQueryIntervalTree<I, K, D> {
 impl<I, K, D> EqualityTestGapQueryIntervalTree<I, K, D>
 where
     D: Eq + Hash + Clone + Copy + Debug,
-    K: Clone
-        + Copy
-        + PartialEq
-        + Debug
-        + RangeBounds<I>
-        + From<InclusiveInterval<I>>
-        + InclusiveRange<I>,
+    K: Clone + Copy + PartialEq + Debug + From<InclusiveInterval<I>> + InclusiveRange<I>,
     I: Clone + Copy + PartialEq + Debug + Ord + DiscreteFinite,
 {
     fn assert_eq(&self) {

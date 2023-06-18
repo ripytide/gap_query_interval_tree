@@ -137,7 +137,7 @@ where
         //we don't want end ones as they are
         //handled separately
         let non_end_gaps = valid_gaps
-            .filter(|gap| !gap.contains(&interval.start()) && !gap.contains(&interval.end()));
+            .filter(|gap| !gap.contains(interval.start()) && !gap.contains(interval.end()));
 
         //instead of using possibly-partial end gaps we will
         //replace them with completely_iterated gaps
