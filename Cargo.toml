@@ -1,6 +1,6 @@
 [package]
 name = "gap_query_interval_tree"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["James Forster <james.forsterer@gmail.com>"]
 description = """
 A crate that provides a gap-query optimized interval-tree
