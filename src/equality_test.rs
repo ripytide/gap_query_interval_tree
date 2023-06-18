@@ -18,68 +18,76 @@
    <https://www.gnu.org/licenses/>.
 */
 
+use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
+use std::ops::RangeBounds;
 
-use discrete_range_map::DiscreteFinite;
+use discrete_range_map::{DiscreteFinite, InclusiveInterval, InclusiveRange};
 
 use crate::interface::GapQueryIntervalTree;
 use crate::naive::NaiveGapQueryIntervalTree;
 use crate::no_gaps_ref::NoGapsRefGapQueryIntervalTree;
 
 #[derive(Clone)]
-pub struct EqualityTestGapQueryIntervalTree<I, T> {
-	naive: NaiveGapQueryIntervalTree<I, T>,
-	no_gaps_ref: NoGapsRefGapQueryIntervalTree<I, T>,
+pub struct EqualityTestGapQueryIntervalTree<I, K, D> {
+    naive: NaiveGapQueryIntervalTree<I, K, D>,
+    no_gaps_ref: NoGapsRefGapQueryIntervalTree<I, K, D>,
 }
 
-impl<I, T> EqualityTestGapQueryIntervalTree<I, T>
+impl<I, K, D> EqualityTestGapQueryIntervalTree<I, K, D>
 where
-	I: Eq + Hash + Copy + Debug,
-	T: Ord + Copy + DiscreteFinite + Debug,
+    D: Eq + Hash + Clone + Copy + Debug,
+    K: Clone
+        + Copy
+        + PartialEq
+        + Debug
+        + RangeBounds<I>
+        + From<InclusiveInterval<I>>
+        + InclusiveRange<I>,
+    I: Clone + Copy + PartialEq + Debug + Ord + DiscreteFinite,
 {
-	fn assert_eq(&self) {
-		assert_eq!(self.naive, self.no_gaps_ref.clone().into_naive());
-	}
+    fn assert_eq(&self) {
+        assert_eq!(self.naive, self.no_gaps_ref.clone().into_naive());
+    }
 }
 
-impl<I, T> GapQueryIntervalTree<I, T> for EqualityTestGapQueryIntervalTree<I, T>
+impl<I, K, D> GapQueryIntervalTree<I, K, D> for EqualityTestGapQueryIntervalTree<I, K, D>
 where
-	I: Eq + Hash + Copy + Debug,
-	T: Ord + Copy + DiscreteFinite + Debug,
+    I: Ord + Copy + DiscreteFinite + Debug,
+    K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>> + Debug + PartialEq,
+    D: Eq + Hash + Debug + Copy,
 {
-	fn gap_query(
-		&self,
-		with_identifier: Option<I>,
-		interval: discrete_range_map::Interval<T>,
-	) -> Vec<discrete_range_map::Interval<T>> {
-		let result1 = self.naive.gap_query(with_identifier, interval);
-		let result2 = self.no_gaps_ref.gap_query(with_identifier, interval);
+    fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
+    where
+        Q: InclusiveRange<I> + Copy,
+    {
+        let result1 = self.naive.gap_query(with_identifier, interval);
+        let result2 = self.no_gaps_ref.gap_query(with_identifier, interval);
 
-		assert_eq!(result1, result2);
+        assert_eq!(result1, result2);
 
-		return result1;
-	}
+        return result1;
+    }
 
-	fn insert(
-		&mut self,
-		identifier: I,
-		interval: discrete_range_map::Interval<T>,
-	) {
-		self.naive.insert(identifier, interval);
-		self.no_gaps_ref.insert(identifier, interval);
+    fn insert(&mut self, identifiers: HashSet<D>, interval: K) {
+        self.naive.insert(identifiers.clone(), interval);
+        self.no_gaps_ref.insert(identifiers, interval);
 
-		self.assert_eq();
-	}
+        self.assert_eq();
+    }
 
-	fn remove(
-		&mut self,
-		identifier: I,
-		interval: discrete_range_map::Interval<T>,
-	) {
-		self.naive.remove(identifier, interval);
-		self.no_gaps_ref.remove(identifier, interval);
+    fn cut(&mut self, identifiers: HashSet<D>, interval: K) {
+        self.naive.cut(identifiers.clone(), interval);
+        self.no_gaps_ref.cut(identifiers, interval);
 
-		self.assert_eq();
-	}
+        self.assert_eq();
+    }
+
+    fn append(&mut self, other: &mut Self) {
+        self.naive.append(&mut other.naive);
+        self.no_gaps_ref.append(&mut other.no_gaps_ref);
+
+        self.assert_eq();
+    }
 }
