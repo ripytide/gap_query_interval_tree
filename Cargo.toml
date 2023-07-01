@@ -18,6 +18,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-discrete_range_map = {path="../discrete_range_map"}
+discrete_range_map = "0.5.1"
 itertools = "0.10.5"
 serde = "1.0.164"
