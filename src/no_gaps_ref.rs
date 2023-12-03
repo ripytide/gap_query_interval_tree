@@ -18,8 +18,10 @@
    <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::BTreeSet;
+use alloc::collections::BTreeSet;
+use alloc::vec::Vec;
 
+use discrete_range_map::discrete_range_map::{PointType, RangeType};
 use discrete_range_map::{DiscreteFinite, DiscreteRangeMap, InclusiveInterval, InclusiveRange};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -27,23 +29,26 @@ use serde::{Deserialize, Serialize};
 use crate::interface::GapQueryIntervalTree;
 use crate::naive::NaiveGapQueryIntervalTree;
 
+pub trait IdType: Eq + Ord + Copy {}
+impl<D> IdType for D where D: Eq + Ord + Copy {}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NoGapsRefGapQueryIntervalTree<I, K, D> {
     #[serde(bound(
-        deserialize = "I: Ord + Copy + DiscreteFinite, K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>> + Deserialize<'de>, D: Deserialize<'de> + Eq + Ord, "
+        deserialize = "I: PointType, K: RangeType<I> + Deserialize<'de>, D: IdType + Deserialize<'de>,"
     ))]
     inner: DiscreteRangeMap<I, K, BTreeSet<D>>,
 }
 
 impl<I, K, D> GapQueryIntervalTree<I, K, D> for NoGapsRefGapQueryIntervalTree<I, K, D>
 where
-    I: Ord + Copy + DiscreteFinite,
-    K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>>,
-    D: Eq + Ord + Copy,
+    I: PointType,
+    K: RangeType<I>,
+    D: IdType,
 {
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
     where
-        Q: InclusiveRange<I> + Copy,
+        Q: RangeType<I>,
     {
         match with_identifier {
             Some(identifier) => self.get_gaps_with_identifier(identifier, interval),
@@ -53,7 +58,7 @@ where
 
     fn cut<Q>(&mut self, with_identifiers: Option<BTreeSet<D>>, interval: Q)
     where
-        Q: InclusiveRange<I> + Copy,
+        Q: RangeType<I>,
     {
         for (cut_interval, mut cut_identifiers) in self
             .inner
@@ -111,10 +116,7 @@ where
         }
     }
 
-    fn identifiers_at_point(&self, at_point: I) -> BTreeSet<D>
-    where
-        D: Copy,
-    {
+    fn identifiers_at_point(&self, at_point: I) -> BTreeSet<D> {
         self.inner
             .get_at_point(at_point)
             .cloned()
@@ -124,13 +126,13 @@ where
 
 impl<I, K, D> NoGapsRefGapQueryIntervalTree<I, K, D>
 where
-    I: Ord + Copy + DiscreteFinite,
-    K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>>,
-    D: Eq + Ord + Copy,
+    I: PointType,
+    K: RangeType<I>,
+    D: IdType,
 {
     fn get_gaps_with_identifier<Q>(&self, identifier: D, interval: Q) -> Vec<K>
     where
-        Q: InclusiveRange<I> + Copy,
+        Q: RangeType<I>,
     {
         let valid_gaps = self
             .inner
@@ -155,19 +157,16 @@ where
         let mut right_gap = self.expand_gaps_at_point_right(identifier, interval.end());
         //if they refer to the save gap then merge them
         if let Some(left) = left_gap.as_mut()
-                    && let Some(right) = right_gap
-                    && left.overlaps_ordered(&right)
-                {
-                    *left = left.merge_ordered(&right);
-                    right_gap = None;
-                }
+            && let Some(right) = right_gap
+            && left.overlaps_ordered(&right)
+        {
+            *left = left.merge_ordered(&right);
+            right_gap = None;
+        }
 
         //then we need to chain these iterators together and
         //progressively merge touching gaps
-        let all_non_merged_gaps = left_gap
-            .into_iter()
-            .chain(non_end_gaps)
-            .chain(right_gap.into_iter());
+        let all_non_merged_gaps = left_gap.into_iter().chain(non_end_gaps).chain(right_gap);
 
         //the final proper merged result
         all_non_merged_gaps
@@ -182,7 +181,7 @@ where
     }
     fn get_gaps_no_identifier<Q>(&self, interval: Q) -> Vec<K>
     where
-        Q: InclusiveRange<I> + Copy,
+        Q: RangeType<I>,
     {
         self.inner
             .overlapping(interval)
@@ -262,7 +261,7 @@ where
             }
         }
 
-        return naive;
+        naive
     }
 }
 
@@ -292,8 +291,8 @@ where
 
 impl<I, K, D> Default for NoGapsRefGapQueryIntervalTree<I, K, D>
 where
-    I: DiscreteFinite + Copy + Ord,
-    K: InclusiveRange<I> + From<InclusiveInterval<I>> + Copy,
+    I: PointType,
+    K: RangeType<I>,
 {
     fn default() -> Self {
         let mut map = DiscreteRangeMap::new();
@@ -311,8 +310,8 @@ where
 
 impl<I, K, D> NoGapsRefGapQueryIntervalTree<I, K, D>
 where
-    I: DiscreteFinite + Copy + Ord,
-    K: InclusiveRange<I> + From<InclusiveInterval<I>> + Copy,
+    I: PointType,
+    K: RangeType<I>,
 {
     pub fn new() -> Self {
         Self::default()

@@ -21,6 +21,8 @@
 //! A crate that provides a gap-query optimized interval-tree
 //! data-structure.
 //!
+//! `no_std` is supported and should work with the default features.
+//!
 //! There are three main operations available on this data-structure:
 //! insertion, removal and gap-queries. Each of which are `O(log(N) +
 //! K)` where `N` is the total number of intervals in the tree and `K`
@@ -36,6 +38,9 @@
 #![doc=include_str!("../images/gap-query.svg")]
 #![feature(let_chains)]
 #![feature(btree_extract_if)]
+#![cfg_attr(not(test), no_std)]
+
+extern crate alloc;
 
 pub mod equality_test;
 pub mod interface;
@@ -45,4 +50,5 @@ pub mod no_gaps_ref;
 pub use equality_test::EqualityTestGapQueryIntervalTree;
 pub use interface::GapQueryIntervalTree;
 pub use naive::NaiveGapQueryIntervalTree;
+pub use no_gaps_ref::IdType;
 pub use no_gaps_ref::NoGapsRefGapQueryIntervalTree;

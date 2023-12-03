@@ -18,9 +18,13 @@
    <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::BTreeSet;
+use alloc::collections::BTreeSet;
+use alloc::vec::Vec;
 
-use discrete_range_map::{InclusiveInterval, InclusiveRange};
+use discrete_range_map::{
+    discrete_range_map::{PointType, RangeType},
+    InclusiveInterval,
+};
 
 pub trait GapQueryIntervalTree<I, K, D> {
     //optimisation make this a iterator not a vec to save allocation
@@ -47,7 +51,7 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// ```
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
     where
-        Q: InclusiveRange<I> + Copy;
+        Q: RangeType<I>;
 
     /// Inserts an interval into the collection for the given
     /// identifiers.
@@ -87,7 +91,7 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// ```
     fn cut<Q>(&mut self, with_identifiers: Option<BTreeSet<D>>, interval: Q)
     where
-        Q: InclusiveRange<I> + Copy;
+        Q: RangeType<I>;
 
     /// Append one interval tree with another by inserting all the
     /// intervals from `other` into `self`.
@@ -143,7 +147,7 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// ```
     fn gap_query_at_point(&self, with_identifier: Option<D>, at_point: I) -> Option<K>
     where
-        I: Copy,
+        I: PointType,
     {
         let mut overlapping = self.gap_query(
             with_identifier,
