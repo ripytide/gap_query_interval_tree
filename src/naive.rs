@@ -18,8 +18,7 @@
    <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
+use std::collections::{BTreeMap, BTreeSet};
 
 use discrete_range_map::{DiscreteFinite, DiscreteRangeSet, InclusiveInterval, InclusiveRange};
 
@@ -27,12 +26,12 @@ use crate::interface::GapQueryIntervalTree;
 
 #[derive(Debug, Clone)]
 pub struct NaiveGapQueryIntervalTree<I, K, D> {
-    pub(crate) inner: HashMap<D, DiscreteRangeSet<I, K>>,
+    pub(crate) inner: BTreeMap<D, DiscreteRangeSet<I, K>>,
 }
 
 impl<I, K, D> PartialEq for NaiveGapQueryIntervalTree<I, K, D>
 where
-    D: Eq + Hash,
+    D: Eq + Ord,
     K: PartialEq,
     I: PartialEq,
 {
@@ -45,7 +44,7 @@ impl<I, K, D> GapQueryIntervalTree<I, K, D> for NaiveGapQueryIntervalTree<I, K, 
 where
     I: Ord + Copy + DiscreteFinite,
     K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>>,
-    D: Eq + Hash,
+    D: Eq + Ord,
 {
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
     where
@@ -56,7 +55,7 @@ where
         gaps.overlapping(interval).copied().collect()
     }
 
-    fn insert(&mut self, identifiers: HashSet<D>, interval: K) {
+    fn insert(&mut self, identifiers: BTreeSet<D>, interval: K) {
         for identifier in identifiers {
             self.inner
                 .entry(identifier)
@@ -64,7 +63,7 @@ where
                 .insert_merge_touching_or_overlapping(interval);
         }
     }
-    fn cut<Q>(&mut self, with_identifiers: Option<HashSet<D>>, interval: Q)
+    fn cut<Q>(&mut self, with_identifiers: Option<BTreeSet<D>>, interval: Q)
     where
         Q: InclusiveRange<I> + Copy,
     {
@@ -85,7 +84,7 @@ where
     }
 
     fn append(&mut self, other: &mut Self) {
-        for (identifier, intervals) in other.inner.drain() {
+        for (identifier, intervals) in other.inner.extract_if(|_, _| true) {
             if !intervals.is_empty() {
                 let store = self.inner.entry(identifier).or_default();
                 for interval in intervals {
@@ -95,7 +94,7 @@ where
         }
     }
 
-    fn identifiers_at_point(&self, at_point: I) -> HashSet<D>
+    fn identifiers_at_point(&self, at_point: I) -> BTreeSet<D>
     where
         D: Copy,
     {
@@ -116,7 +115,7 @@ where
 impl<I, K, D> Default for NaiveGapQueryIntervalTree<I, K, D> {
     fn default() -> Self {
         Self {
-            inner: HashMap::new(),
+            inner: BTreeMap::new(),
         }
     }
 }
@@ -131,7 +130,7 @@ impl<I, K, D> NaiveGapQueryIntervalTree<I, K, D>
 where
     I: Ord + Copy + DiscreteFinite,
     K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>>,
-    D: Eq + Hash,
+    D: Eq + Ord,
 {
     fn get_gaps(&self, with_identifier: Option<D>) -> DiscreteRangeSet<I, K> {
         let mut total_intervals = DiscreteRangeSet::new();

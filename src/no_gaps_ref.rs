@@ -18,8 +18,7 @@
    <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::HashSet;
-use std::hash::Hash;
+use std::collections::BTreeSet;
 
 use discrete_range_map::{DiscreteFinite, DiscreteRangeMap, InclusiveInterval, InclusiveRange};
 use itertools::Itertools;
@@ -31,16 +30,16 @@ use crate::naive::NaiveGapQueryIntervalTree;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NoGapsRefGapQueryIntervalTree<I, K, D> {
     #[serde(bound(
-        deserialize = "I: Ord + Copy + DiscreteFinite, K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>> + Deserialize<'de>, D: Deserialize<'de> + Eq + Hash, "
+        deserialize = "I: Ord + Copy + DiscreteFinite, K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>> + Deserialize<'de>, D: Deserialize<'de> + Eq + Ord, "
     ))]
-    inner: DiscreteRangeMap<I, K, HashSet<D>>,
+    inner: DiscreteRangeMap<I, K, BTreeSet<D>>,
 }
 
 impl<I, K, D> GapQueryIntervalTree<I, K, D> for NoGapsRefGapQueryIntervalTree<I, K, D>
 where
     I: Ord + Copy + DiscreteFinite,
     K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>>,
-    D: Eq + Hash + Copy,
+    D: Eq + Ord + Copy,
 {
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
     where
@@ -52,7 +51,7 @@ where
         }
     }
 
-    fn cut<Q>(&mut self, with_identifiers: Option<HashSet<D>>, interval: Q)
+    fn cut<Q>(&mut self, with_identifiers: Option<BTreeSet<D>>, interval: Q)
     where
         Q: InclusiveRange<I> + Copy,
     {
@@ -74,7 +73,7 @@ where
         }
     }
 
-    fn insert(&mut self, identifiers: HashSet<D>, interval: K) {
+    fn insert(&mut self, identifiers: BTreeSet<D>, interval: K) {
         //first we extend the overlapping partial
         //intervals with the
         //other_specifiers and then insert them
@@ -112,14 +111,14 @@ where
         }
     }
 
-    fn identifiers_at_point(&self, at_point: I) -> HashSet<D>
+    fn identifiers_at_point(&self, at_point: I) -> BTreeSet<D>
     where
         D: Copy,
     {
         self.inner
             .get_at_point(at_point)
             .cloned()
-            .unwrap_or(HashSet::new())
+            .unwrap_or(BTreeSet::new())
     }
 }
 
@@ -127,7 +126,7 @@ impl<I, K, D> NoGapsRefGapQueryIntervalTree<I, K, D>
 where
     I: Ord + Copy + DiscreteFinite,
     K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>>,
-    D: Eq + Hash + Copy,
+    D: Eq + Ord + Copy,
 {
     fn get_gaps_with_identifier<Q>(&self, identifier: D, interval: Q) -> Vec<K>
     where
@@ -203,7 +202,7 @@ impl<I, K, D> NoGapsRefGapQueryIntervalTree<I, K, D>
 where
     I: Ord + Copy + DiscreteFinite,
     K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>>,
-    D: Eq + Hash + Copy,
+    D: Eq + Ord + Copy,
 {
     fn expand_gaps_at_point_right(&self, identifier: D, point: I) -> Option<K> {
         let overlapping_right = self.inner.overlapping(InclusiveInterval {
@@ -267,9 +266,9 @@ where
     }
 }
 
-fn valid_identifier<I>(with_identifier: Option<I>, other_identifiers: &HashSet<I>) -> bool
+fn valid_identifier<I>(with_identifier: Option<I>, other_identifiers: &BTreeSet<I>) -> bool
 where
-    I: Eq + Hash,
+    I: Eq + Ord,
 {
     match with_identifier {
         Some(identifier) => {
@@ -284,7 +283,7 @@ impl<I, K, D> PartialEq for NoGapsRefGapQueryIntervalTree<I, K, D>
 where
     I: PartialEq,
     K: PartialEq,
-    HashSet<D>: PartialEq,
+    BTreeSet<D>: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         self.inner.eq(&other.inner)
@@ -303,7 +302,7 @@ where
                 start: I::MIN,
                 end: I::MAX,
             }),
-            HashSet::new(),
+            BTreeSet::new(),
         )
         .unwrap();
         Self { inner: map }

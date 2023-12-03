@@ -35,7 +35,7 @@
 //! # Gap-Query
 #![doc=include_str!("../images/gap-query.svg")]
 #![feature(let_chains)]
-#![feature(hash_extract_if)]
+#![feature(btree_extract_if)]
 
 pub mod equality_test;
 pub mod interface;

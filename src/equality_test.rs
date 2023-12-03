@@ -18,9 +18,8 @@
    <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::fmt::Debug;
-use std::hash::Hash;
 
 use discrete_range_map::{DiscreteFinite, InclusiveInterval, InclusiveRange};
 
@@ -36,7 +35,7 @@ pub struct EqualityTestGapQueryIntervalTree<I, K, D> {
 
 impl<I, K, D> EqualityTestGapQueryIntervalTree<I, K, D>
 where
-    D: Eq + Hash + Clone + Copy + Debug,
+    D: Eq + Ord + Clone + Copy + Debug,
     K: Clone + Copy + PartialEq + Debug + From<InclusiveInterval<I>> + InclusiveRange<I>,
     I: Clone + Copy + PartialEq + Debug + Ord + DiscreteFinite,
 {
@@ -49,7 +48,7 @@ impl<I, K, D> GapQueryIntervalTree<I, K, D> for EqualityTestGapQueryIntervalTree
 where
     I: Ord + Copy + DiscreteFinite + Debug,
     K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>> + Debug + PartialEq,
-    D: Eq + Hash + Debug + Copy,
+    D: Eq + Ord + Debug + Copy,
 {
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
     where
@@ -63,14 +62,14 @@ where
         return result1;
     }
 
-    fn insert(&mut self, identifiers: HashSet<D>, interval: K) {
+    fn insert(&mut self, identifiers: BTreeSet<D>, interval: K) {
         self.naive.insert(identifiers.clone(), interval);
         self.no_gaps_ref.insert(identifiers, interval);
 
         self.assert_eq();
     }
 
-    fn cut<Q>(&mut self, with_identifiers: Option<HashSet<D>>, interval: Q)
+    fn cut<Q>(&mut self, with_identifiers: Option<BTreeSet<D>>, interval: Q)
     where
         Q: InclusiveRange<I> + Copy,
     {
@@ -87,7 +86,7 @@ where
         self.assert_eq();
     }
 
-    fn identifiers_at_point(&self, at_point: I) -> HashSet<D>
+    fn identifiers_at_point(&self, at_point: I) -> BTreeSet<D>
     where
         D: Copy,
     {
