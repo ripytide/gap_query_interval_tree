@@ -21,14 +21,15 @@
 use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::vec::Vec;
 
-use discrete_range_map::discrete_range_map::{PointType, RangeType};
-use discrete_range_map::{DiscreteRangeSet, InclusiveInterval};
+use nodit::interval::uu;
+use nodit::map::{IntervalType, PointType};
+use nodit::NoditSet;
 
 use crate::{interface::GapQueryIntervalTree, IdType};
 
 #[derive(Debug, Clone)]
 pub struct NaiveGapQueryIntervalTree<I, K, D> {
-    pub(crate) inner: BTreeMap<D, DiscreteRangeSet<I, K>>,
+    pub(crate) inner: BTreeMap<D, NoditSet<I, K>>,
 }
 
 impl<I, K, D> PartialEq for NaiveGapQueryIntervalTree<I, K, D>
@@ -45,12 +46,12 @@ where
 impl<I, K, D> GapQueryIntervalTree<I, K, D> for NaiveGapQueryIntervalTree<I, K, D>
 where
     I: PointType,
-    K: RangeType<I>,
+    K: IntervalType<I>,
     D: IdType,
 {
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
     where
-        Q: RangeType<I>,
+        Q: IntervalType<I>,
     {
         let gaps = self.get_gaps(with_identifier);
 
@@ -67,7 +68,7 @@ where
     }
     fn cut<Q>(&mut self, with_identifiers: Option<BTreeSet<D>>, interval: Q)
     where
-        Q: RangeType<I>,
+        Q: IntervalType<I>,
     {
         match with_identifiers {
             Some(identifiers) => {
@@ -128,11 +129,11 @@ impl<I, K, D> NaiveGapQueryIntervalTree<I, K, D> {
 impl<I, K, D> NaiveGapQueryIntervalTree<I, K, D>
 where
     I: PointType,
-    K: RangeType<I>,
+    K: IntervalType<I>,
     D: IdType,
 {
-    fn get_gaps(&self, with_identifier: Option<D>) -> DiscreteRangeSet<I, K> {
-        let mut total_intervals = DiscreteRangeSet::new();
+    fn get_gaps(&self, with_identifier: Option<D>) -> NoditSet<I, K> {
+        let mut total_intervals = NoditSet::new();
         for other_identifier_intervals in
             self.inner
                 .iter()
@@ -151,12 +152,9 @@ where
             }
         }
 
-        let gaps = total_intervals.gaps(InclusiveInterval {
-            start: I::MIN,
-            end: I::MAX,
-        });
+        let gaps = total_intervals.gaps_untrimmed(uu());
 
-        let mut set = DiscreteRangeSet::new();
+        let mut set = NoditSet::new();
         for gap in gaps {
             set.insert_strict(gap).unwrap();
         }

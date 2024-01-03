@@ -21,9 +21,10 @@
 use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 
-use discrete_range_map::discrete_range_map::{PointType, RangeType};
-use discrete_range_map::{DiscreteFinite, DiscreteRangeMap, InclusiveInterval, InclusiveRange};
 use itertools::Itertools;
+use nodit::interval::{iu, ui, uu};
+use nodit::NoditMap;
+use nodit::{IntervalType, PointType};
 use serde::{Deserialize, Serialize};
 
 use crate::interface::GapQueryIntervalTree;
@@ -35,20 +36,20 @@ impl<D> IdType for D where D: Eq + Ord + Copy {}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NoGapsRefGapQueryIntervalTree<I, K, D> {
     #[serde(bound(
-        deserialize = "I: PointType, K: RangeType<I> + Deserialize<'de>, D: IdType + Deserialize<'de>,"
+        deserialize = "I: PointType, K: IntervalType<I> + Deserialize<'de>, D: IdType + Deserialize<'de>,"
     ))]
-    inner: DiscreteRangeMap<I, K, BTreeSet<D>>,
+    inner: NoditMap<I, K, BTreeSet<D>>,
 }
 
 impl<I, K, D> GapQueryIntervalTree<I, K, D> for NoGapsRefGapQueryIntervalTree<I, K, D>
 where
     I: PointType,
-    K: RangeType<I>,
+    K: IntervalType<I>,
     D: IdType,
 {
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
     where
-        Q: RangeType<I>,
+        Q: IntervalType<I>,
     {
         match with_identifier {
             Some(identifier) => self.get_gaps_with_identifier(identifier, interval),
@@ -58,7 +59,7 @@ where
 
     fn cut<Q>(&mut self, with_identifiers: Option<BTreeSet<D>>, interval: Q)
     where
-        Q: RangeType<I>,
+        Q: IntervalType<I>,
     {
         for (cut_interval, mut cut_identifiers) in self
             .inner
@@ -74,7 +75,7 @@ where
             }
             self.inner
                 .insert_merge_touching_if_values_equal(cut_interval, cut_identifiers)
-                .unwrap();
+                .unwrap_or_else(|_| panic!());
         }
     }
 
@@ -103,15 +104,12 @@ where
         for (extended_interval, extended_identifiers) in extended_cut {
             self.inner
                 .insert_merge_touching_if_values_equal(extended_interval, extended_identifiers)
-                .unwrap();
+                .unwrap_or_else(|_| panic!());
         }
     }
 
     fn append(&mut self, other: &mut Self) {
-        for (interval, identifiers) in other.inner.remove_overlapping(InclusiveInterval {
-            start: I::MIN,
-            end: I::MAX,
-        }) {
+        for (interval, identifiers) in other.inner.remove_overlapping(uu()) {
             self.insert(identifiers, interval);
         }
     }
@@ -127,12 +125,12 @@ where
 impl<I, K, D> NoGapsRefGapQueryIntervalTree<I, K, D>
 where
     I: PointType,
-    K: RangeType<I>,
+    K: IntervalType<I>,
     D: IdType,
 {
     fn get_gaps_with_identifier<Q>(&self, identifier: D, interval: Q) -> Vec<K>
     where
-        Q: RangeType<I>,
+        Q: IntervalType<I>,
     {
         let valid_gaps = self
             .inner
@@ -181,7 +179,7 @@ where
     }
     fn get_gaps_no_identifier<Q>(&self, interval: Q) -> Vec<K>
     where
-        Q: RangeType<I>,
+        Q: IntervalType<I>,
     {
         self.inner
             .overlapping(interval)
@@ -199,15 +197,12 @@ where
 
 impl<I, K, D> NoGapsRefGapQueryIntervalTree<I, K, D>
 where
-    I: Ord + Copy + DiscreteFinite,
-    K: InclusiveRange<I> + Copy + From<InclusiveInterval<I>>,
+    I: PointType,
+    K: IntervalType<I>,
     D: Eq + Ord + Copy,
 {
     fn expand_gaps_at_point_right(&self, identifier: D, point: I) -> Option<K> {
-        let overlapping_right = self.inner.overlapping(InclusiveInterval {
-            start: point,
-            end: I::MAX,
-        });
+        let overlapping_right = self.inner.overlapping(iu(point));
 
         overlapping_right
             .take_while(|(_, other_identifiers)| {
@@ -223,13 +218,7 @@ where
     }
     fn expand_gaps_at_point_left(&self, identifier: D, point: I) -> Option<K> {
         //we are going in reverse since we are going left
-        let overlapping_left = self
-            .inner
-            .overlapping(InclusiveInterval {
-                start: I::MIN,
-                end: point,
-            })
-            .rev();
+        let overlapping_left = self.inner.overlapping(ui(point)).rev();
 
         overlapping_left
             .take_while(|(_, other_identifiers)| {
@@ -292,18 +281,12 @@ where
 impl<I, K, D> Default for NoGapsRefGapQueryIntervalTree<I, K, D>
 where
     I: PointType,
-    K: RangeType<I>,
+    K: IntervalType<I>,
 {
     fn default() -> Self {
-        let mut map = DiscreteRangeMap::new();
-        map.insert_strict(
-            K::from(InclusiveInterval {
-                start: I::MIN,
-                end: I::MAX,
-            }),
-            BTreeSet::new(),
-        )
-        .unwrap();
+        let mut map = NoditMap::new();
+        map.insert_strict(K::from(uu()), BTreeSet::new())
+            .unwrap_or_else(|_| panic!());
         Self { inner: map }
     }
 }
@@ -311,7 +294,7 @@ where
 impl<I, K, D> NoGapsRefGapQueryIntervalTree<I, K, D>
 where
     I: PointType,
-    K: RangeType<I>,
+    K: IntervalType<I>,
 {
     pub fn new() -> Self {
         Self::default()

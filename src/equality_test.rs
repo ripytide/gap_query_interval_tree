@@ -21,9 +21,7 @@
 use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use discrete_range_map::discrete_range_map::{PointType, RangeType};
-
-use discrete_range_map::{DiscreteFinite, InclusiveInterval, InclusiveRange};
+use nodit::map::{IntervalType, PointType};
 
 use crate::interface::GapQueryIntervalTree;
 use crate::naive::NaiveGapQueryIntervalTree;
@@ -39,8 +37,8 @@ pub struct EqualityTestGapQueryIntervalTree<I, K, D> {
 impl<I, K, D> EqualityTestGapQueryIntervalTree<I, K, D>
 where
     D: Eq + Ord + Clone + Copy + Debug,
-    K: Clone + Copy + PartialEq + Debug + From<InclusiveInterval<I>> + InclusiveRange<I>,
-    I: Clone + Copy + PartialEq + Debug + Ord + DiscreteFinite,
+    K: IntervalType<I> + PartialEq + Debug,
+    I: PointType + PartialEq + Debug,
 {
     fn assert_eq(&self) {
         assert_eq!(self.naive, self.no_gaps_ref.clone().into_naive());
@@ -50,12 +48,12 @@ where
 impl<I, K, D> GapQueryIntervalTree<I, K, D> for EqualityTestGapQueryIntervalTree<I, K, D>
 where
     I: PointType + Debug,
-    K: RangeType<I> + Debug + PartialEq,
+    K: IntervalType<I> + Debug + PartialEq,
     D: IdType + Debug,
 {
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
     where
-        Q: RangeType<I>,
+        Q: IntervalType<I>,
     {
         let result1 = self.naive.gap_query(with_identifier, interval);
         let result2 = self.no_gaps_ref.gap_query(with_identifier, interval);
@@ -74,7 +72,7 @@ where
 
     fn cut<Q>(&mut self, with_identifiers: Option<BTreeSet<D>>, interval: Q)
     where
-        Q: RangeType<I>,
+        Q: IntervalType<I>,
     {
         self.naive.cut(with_identifiers.clone(), interval);
         self.no_gaps_ref.cut(with_identifiers, interval);

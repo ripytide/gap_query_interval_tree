@@ -21,9 +21,9 @@
 use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 
-use discrete_range_map::{
-    discrete_range_map::{PointType, RangeType},
-    InclusiveInterval,
+use nodit::{
+    interval::ii,
+    map::{IntervalType, PointType},
 };
 
 pub trait GapQueryIntervalTree<I, K, D> {
@@ -35,23 +35,24 @@ pub trait GapQueryIntervalTree<I, K, D> {
     ///
     /// ```
     /// use std::collections::BTreeSet;
-    /// use discrete_range_map::InclusiveInterval;
+    /// use nodit::Interval;
+    /// use nodit::interval::ii;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
     ///
     /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
-    /// tree.insert(BTreeSet::from([5]), InclusiveInterval { start: 3, end: 6 });
-    /// tree.insert(BTreeSet::from([9]), InclusiveInterval { start: 12, end: 28 });
+    /// tree.insert(BTreeSet::from([5]), ii(3, 6));
+    /// tree.insert(BTreeSet::from([9]), ii(12, 28));
     ///
     /// assert_eq!(
-    /// 	tree.gap_query(None, InclusiveInterval { start: 9, end: 9 }),
-    /// 	Vec::from([InclusiveInterval { start: 7, end: 11 }])
+    /// 	tree.gap_query(None, ii(9, 9)),
+    /// 	Vec::from([ii(7, 11)])
     /// );
     /// ```
     fn gap_query<Q>(&self, with_identifier: Option<D>, interval: Q) -> Vec<K>
     where
-        Q: RangeType<I>;
+        Q: IntervalType<I>;
 
     /// Inserts an interval into the collection for the given
     /// identifiers.
@@ -59,14 +60,15 @@ pub trait GapQueryIntervalTree<I, K, D> {
     ///
     /// ```
     /// use std::collections::BTreeSet;
-    /// use discrete_range_map::InclusiveInterval;
+    /// use nodit::Interval;
+    /// use nodit::interval::ii;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
     ///
     /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
-    /// tree.insert(BTreeSet::from([5]), InclusiveInterval { start: 3, end: 6 });
-    /// tree.insert(BTreeSet::from([9]), InclusiveInterval { start: 12, end: 28 });
+    /// tree.insert(BTreeSet::from([5]), ii(3, 6));
+    /// tree.insert(BTreeSet::from([9]), ii(12, 28));
     /// ```
     fn insert(&mut self, identifiers: BTreeSet<D>, interval: K);
 
@@ -77,28 +79,30 @@ pub trait GapQueryIntervalTree<I, K, D> {
     ///
     /// ```
     /// use std::collections::BTreeSet;
-    /// use discrete_range_map::InclusiveInterval;
+    /// use nodit::Interval;
+    /// use nodit::interval::ii;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
     ///
     /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
-    /// tree.insert(BTreeSet::from([5]), InclusiveInterval { start: 3, end: 6 });
-    /// tree.insert(BTreeSet::from([9]), InclusiveInterval { start: 12, end: 28 });
+    /// tree.insert(BTreeSet::from([5]), ii(3, 6));
+    /// tree.insert(BTreeSet::from([9]), ii(12, 28));
     ///
-    /// tree.cut(Some(BTreeSet::from([5])), InclusiveInterval { start: 4, end: 5 });
-    /// tree.cut(Some(BTreeSet::from([9])), InclusiveInterval { start: 0, end: 30 });
+    /// tree.cut(Some(BTreeSet::from([5])), ii(4, 5));
+    /// tree.cut(Some(BTreeSet::from([9])), ii(0, 30));
     /// ```
     fn cut<Q>(&mut self, with_identifiers: Option<BTreeSet<D>>, interval: Q)
     where
-        Q: RangeType<I>;
+        Q: IntervalType<I>;
 
     /// Append one interval tree with another by inserting all the
     /// intervals from `other` into `self`.
     ///
     /// ```
     /// use std::collections::BTreeSet;
-    /// use discrete_range_map::InclusiveInterval;
+    /// use nodit::Interval;
+    /// use nodit::interval::ii;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
@@ -106,14 +110,14 @@ pub trait GapQueryIntervalTree<I, K, D> {
     /// let mut tree1 = NoGapsRefGapQueryIntervalTree::new();
     /// let mut tree2 = NoGapsRefGapQueryIntervalTree::new();
     ///
-    /// tree1.insert(BTreeSet::from([5]), InclusiveInterval { start: 3, end: 6 });
-    /// tree2.insert(BTreeSet::from([9]), InclusiveInterval { start: 12, end: 28 });
+    /// tree1.insert(BTreeSet::from([5]), ii(3, 6));
+    /// tree2.insert(BTreeSet::from([9]), ii(12, 28));
     ///
     /// tree1.append(&mut tree2);
     ///
     /// assert_eq!(
     /// 	tree1.gap_query_at_point(None, 9),
-    /// 	Some(InclusiveInterval { start: 7, end: 11 })
+    /// 	Some(ii(7, 11))
     /// );
     /// ```
     fn append(&mut self, other: &mut Self);
@@ -126,36 +130,31 @@ pub trait GapQueryIntervalTree<I, K, D> {
     ///
     /// ```
     /// use std::collections::BTreeSet;
-    /// use discrete_range_map::InclusiveInterval;
+    /// use nodit::Interval;
+    /// use nodit::interval::ii;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
     ///
     /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
-    /// tree.insert(BTreeSet::from([5]), InclusiveInterval { start: 3, end: 6 });
-    /// tree.insert(BTreeSet::from([9]), InclusiveInterval { start: 12, end: 28 });
+    /// tree.insert(BTreeSet::from([5]), ii(3, 6));
+    /// tree.insert(BTreeSet::from([9]), ii(12, 28));
     ///
     /// assert_eq!(
     /// 	tree.gap_query_at_point(None, 9),
-    /// 	Some(InclusiveInterval { start: 7, end: 11 })
+    /// 	Some(ii(7, 11))
     /// );
     ///
     /// assert_eq!(
     /// 	tree.gap_query_at_point(None, 9),
-    /// 	tree.gap_query(None, InclusiveInterval { start: 9, end: 9 }).pop()
+    /// 	tree.gap_query(None, ii(9, 9)).pop()
     /// );
     /// ```
     fn gap_query_at_point(&self, with_identifier: Option<D>, at_point: I) -> Option<K>
     where
         I: PointType,
     {
-        let mut overlapping = self.gap_query(
-            with_identifier,
-            InclusiveInterval {
-                start: at_point,
-                end: at_point,
-            },
-        );
+        let mut overlapping = self.gap_query(with_identifier, ii(at_point, at_point));
 
         assert!(overlapping.is_empty() || overlapping.len() == 1);
 
@@ -167,14 +166,15 @@ pub trait GapQueryIntervalTree<I, K, D> {
     ///
     /// ```
     /// use std::collections::BTreeSet;
-    /// use discrete_range_map::InclusiveInterval;
+    /// use nodit::Interval;
+    /// use nodit::interval::ii;
     /// use gap_query_interval_tree::{
     /// 	GapQueryIntervalTree, NoGapsRefGapQueryIntervalTree,
     /// };
     ///
     /// let mut tree = NoGapsRefGapQueryIntervalTree::new();
-    /// tree.insert(BTreeSet::from([5]), InclusiveInterval { start: 3, end: 6 });
-    /// tree.insert(BTreeSet::from([9]), InclusiveInterval { start: 12, end: 28 });
+    /// tree.insert(BTreeSet::from([5]), ii(3, 6));
+    /// tree.insert(BTreeSet::from([9]), ii(12, 28));
     ///
     /// assert_eq!(
     /// 	tree.identifiers_at_point(9),
