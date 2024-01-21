@@ -21,7 +21,7 @@
 use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use nodit::map::{IntervalType, PointType};
+use nodit::{IntervalType, PointType};
 
 use crate::interface::GapQueryIntervalTree;
 use crate::naive::NaiveGapQueryIntervalTree;

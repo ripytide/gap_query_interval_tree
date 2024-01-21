@@ -22,8 +22,8 @@ use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 
 use itertools::Itertools;
-use nodit::interval::{iu, ui, uu};
-use nodit::NoditMap;
+use nodit::interval::{ii, iu, ui, uu};
+use nodit::{Interval, NoditMap};
 use nodit::{IntervalType, PointType};
 use serde::{Deserialize, Serialize};
 
@@ -156,9 +156,9 @@ where
         //if they refer to the save gap then merge them
         if let Some(left) = left_gap.as_mut()
             && let Some(right) = right_gap
-            && left.overlaps_ordered(&right)
+            && overlaps_ordered(*left, right)
         {
-            *left = left.merge_ordered(&right);
+            *left = K::from(merge_ordered(*left, right));
             right_gap = None;
         }
 
@@ -169,8 +169,8 @@ where
         //the final proper merged result
         all_non_merged_gaps
             .coalesce(|x, y| {
-                if x.touches_ordered(&y) {
-                    Ok(x.merge_ordered(&y))
+                if touches_ordered(x, y) {
+                    Ok(K::from(merge_ordered(x, y)))
                 } else {
                     Err((x, y))
                 }
@@ -212,7 +212,7 @@ where
             .coalesce(|x, y| {
                 //since there are no gaps we know they will always
                 //touch
-                Ok(x.merge_ordered(&y))
+                Ok(K::from(merge_ordered(x, y)))
             })
             .next()
     }
@@ -231,7 +231,7 @@ where
                 //
                 //since there are no gaps we know they will always
                 //touch
-                Ok(y.merge_ordered(&x))
+                Ok(K::from(merge_ordered(y, x)))
             })
             .next()
     }
@@ -265,6 +265,33 @@ where
         }
         None => other_identifiers.is_empty(),
     }
+}
+/// Requires that self comes before other
+fn merge_ordered<I, A, B>(a: A, b: B) -> Interval<I>
+where
+    I: PointType,
+    A: IntervalType<I>,
+    B: IntervalType<I>,
+{
+    ii(a.start(), b.end())
+}
+/// Requires that self comes before other
+fn overlaps_ordered<I, A, B>(a: A, b: B) -> bool
+where
+    I: PointType,
+    A: IntervalType<I>,
+    B: IntervalType<I>,
+{
+    a.contains(b.start()) || a.contains(b.end())
+}
+/// Requires that self comes before other
+fn touches_ordered<I, A, B>(a: A, b: B) -> bool
+where
+    I: PointType,
+    A: IntervalType<I>,
+    B: IntervalType<I>,
+{
+    a.end() == b.start().down().unwrap()
 }
 
 impl<I, K, D> PartialEq for NoGapsRefGapQueryIntervalTree<I, K, D>

@@ -23,7 +23,7 @@ use alloc::vec::Vec;
 
 use nodit::{
     interval::ii,
-    map::{IntervalType, PointType},
+    {IntervalType, PointType},
 };
 
 pub trait GapQueryIntervalTree<I, K, D> {

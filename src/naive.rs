@@ -22,7 +22,7 @@ use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::vec::Vec;
 
 use nodit::interval::uu;
-use nodit::map::{IntervalType, PointType};
+use nodit::{IntervalType, PointType};
 use nodit::NoditSet;
 
 use crate::{interface::GapQueryIntervalTree, IdType};
