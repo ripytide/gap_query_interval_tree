@@ -1,3 +1,10 @@
+## This crate has been absorbed into the `nodit` crate
+
+Please switch to using the `Gqdit` type in the `nodit` crate as this crate will
+no longer be receiving updates.
+
+## Old README
+
 A crate that provides a gap-query optimized interval-tree
 data-structure.
 

@@ -18,15 +18,22 @@
    <https://www.gnu.org/licenses/>.
 */
 
+//! ## This crate has been absorbed into the `nodit` crate
+//!
+//! Please switch to using the `Gqdit` type in the `nodit` crate as this crate will
+//! no longer be receiving updates.
+//!
+//! ## Old README
+//!
 //! A crate that provides a gap-query optimized interval-tree
 //! data-structure.
 //!
 //! `no_std` is supported and should work with the default features.
 //!
 //! There are three main operations available on this data-structure:
-//! insertion, removal and gap-queries. Each of which are `O(log(N) +
-//! K)` where `N` is the total number of intervals in the tree and `K`
-//! is the number of intervals required to be processed.
+//! insertion, removal and gap-queries. Each of which are `O(log(N) + K)`
+//! where `N` is the total number of intervals in the tree and `K` is the
+//! number of intervals required to be processed.
 //!
 //! Here are visualizations of the three operations:
 //!
@@ -34,7 +41,7 @@
 #![doc=include_str!("../images/insertion.svg")]
 //! # Removal
 #![doc=include_str!("../images/removal.svg")]
-//! # Gap-Query
+//! ![removal](images/removal.svg)
 #![doc=include_str!("../images/gap-query.svg")]
 #![feature(let_chains)]
 #![feature(btree_extract_if)]
